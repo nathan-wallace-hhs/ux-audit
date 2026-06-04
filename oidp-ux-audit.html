@@ -1,0 +1,475 @@
+
+<h2 class="sr-only">HHS OIDP UX Audit — interactive heuristic review, user journey maps, and redesign recommendations</h2>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+
+.audit-header { padding: 2rem 0 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 1.5rem; }
+.audit-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 6px; }
+.audit-subtitle { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.audit-url { font-size: 13px; color: var(--color-text-tertiary); margin-top: 4px; }
+
+.score-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.score-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; }
+.score-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; }
+.score-val { font-size: 26px; font-weight: 500; }
+.score-val.critical { color: #A32D2D; }
+.score-val.warn { color: #854F0B; }
+.score-val.ok { color: #3B6D11; }
+.score-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 3px; }
+
+.tab-row { display: flex; gap: 2px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 1.5rem; }
+.tab { font-size: 13px; padding: 8px 14px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--color-text-secondary); background: none; border-top: none; border-left: none; border-right: none; font-family: var(--font-sans); transition: color .15s; }
+.tab.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); font-weight: 500; }
+.tab:hover:not(.active) { color: var(--color-text-primary); }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+.section-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px; margin-top: 1.5rem; }
+.section-title:first-child { margin-top: 0; }
+
+.heuristic-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+.h-item { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; cursor: pointer; transition: border-color .15s; }
+.h-item:hover { border-color: var(--color-border-secondary); }
+.h-header { display: flex; align-items: center; gap: 10px; }
+.h-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: var(--border-radius-md); white-space: nowrap; }
+.badge-fail { background: #FCEBEB; color: #A32D2D; }
+.badge-warn { background: #FAEEDA; color: #854F0B; }
+.badge-pass { background: #EAF3DE; color: #3B6D11; }
+.h-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); flex: 1; }
+.h-score { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); }
+.h-bar-wrap { margin-top: 8px; height: 4px; background: var(--color-border-tertiary); border-radius: 2px; }
+.h-bar { height: 4px; border-radius: 2px; transition: width .4s; }
+.h-detail { font-size: 12px; color: var(--color-text-secondary); margin-top: 10px; line-height: 1.6; padding-top: 10px; border-top: 0.5px solid var(--color-border-tertiary); display: none; }
+.h-item.open .h-detail { display: block; }
+.h-finding { margin-top: 6px; padding-left: 12px; border-left: 2px solid var(--color-border-tertiary); }
+
+.persona-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.persona-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; cursor: pointer; }
+.persona-card.selected { border-color: var(--color-border-info); border-width: 2px; }
+.persona-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 13px; margin-bottom: 10px; }
+.p-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.p-role { font-size: 11px; color: var(--color-text-secondary); }
+
+.journey-area { margin-bottom: 1.5rem; }
+.journey-stage { margin-bottom: 12px; }
+.stage-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.stage-num { width: 22px; height: 22px; border-radius: 50%; background: var(--color-background-secondary); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); flex-shrink: 0; }
+.stage-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.stage-body { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding-left: 30px; }
+.stage-cell { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+.cell-label { font-size: 10px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+.cell-text { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.emotion-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+
+.opp-list { display: flex; flex-direction: column; gap: 8px; }
+.opp-item { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
+.opp-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.opp-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+.opp-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.opp-tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: var(--border-radius-md); margin-top: 5px; font-weight: 500; }
+.tag-hi { background: #FAECE7; color: #993C1D; }
+.tag-med { background: #FAEEDA; color: #854F0B; }
+.tag-lo { background: #EAF3DE; color: #3B6D11; }
+
+.copy-grid { display: flex; flex-direction: column; gap: 10px; }
+.copy-pair { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; }
+.copy-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.copy-before { color: #854F0B; background: #FAEEDA; border-radius: var(--border-radius-md); padding: 8px 10px; font-size: 13px; margin-bottom: 6px; line-height: 1.5; }
+.copy-after { color: #3B6D11; background: #EAF3DE; border-radius: var(--border-radius-md); padding: 8px 10px; font-size: 13px; line-height: 1.5; }
+.copy-why { font-size: 11px; color: var(--color-text-tertiary); margin-top: 6px; line-height: 1.5; }
+
+.ask-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--color-text-info); background: none; border: none; cursor: pointer; padding: 6px 0; font-family: var(--font-sans); }
+.ask-btn:hover { text-decoration: underline; }
+
+.divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1.5rem 0; }
+</style>
+
+<div class="audit-header">
+  <div class="audit-title">UX Audit — ux-journey-architect</div>
+  <div class="audit-subtitle">HHS Office of Infectious Disease &amp; HIV/AIDS Policy</div>
+  <div class="audit-url">hhs.gov/oidp · Reviewed June 4, 2026</div>
+</div>
+
+<div class="score-row">
+  <div class="score-card">
+    <div class="score-label">Overall UX score</div>
+    <div class="score-val warn">4.9<span style="font-size:16px;font-weight:400">/10</span></div>
+    <div class="score-sub">Nielsen heuristics avg</div>
+  </div>
+  <div class="score-card">
+    <div class="score-label">Critical failures</div>
+    <div class="score-val critical">4</div>
+    <div class="score-sub">High-friction issues</div>
+  </div>
+  <div class="score-card">
+    <div class="score-label">Accessibility</div>
+    <div class="score-val warn">6.0<span style="font-size:16px;font-weight:400">/10</span></div>
+    <div class="score-sub">WCAG 2.1 partial</div>
+  </div>
+  <div class="score-card">
+    <div class="score-label">Content clarity</div>
+    <div class="score-val warn">5.5<span style="font-size:16px;font-weight:400">/10</span></div>
+    <div class="score-sub">Jargon, no plain language</div>
+  </div>
+  <div class="score-card">
+    <div class="score-label">Mobile readiness</div>
+    <div class="score-val critical">3.5<span style="font-size:16px;font-weight:400">/10</span></div>
+    <div class="score-sub">Nav collapses poorly</div>
+  </div>
+</div>
+
+<div class="tab-row">
+  <button class="tab active" onclick="switchTab('heuristics')">Heuristics</button>
+  <button class="tab" onclick="switchTab('journeys')">User journeys</button>
+  <button class="tab" onclick="switchTab('opportunities')">Opportunities</button>
+  <button class="tab" onclick="switchTab('microcopy')">Microcopy</button>
+</div>
+
+<!-- HEURISTICS -->
+<div id="panel-heuristics" class="panel active">
+  <div class="section-title">Nielsen's 10 heuristics — scored against hhs.gov/oidp</div>
+  <div class="heuristic-list" id="h-list"></div>
+  <button class="ask-btn" onclick="sendPrompt('Show me how to fix the top 3 heuristic failures on hhs.gov/oidp in a redesigned wireframe')">↗ Generate wireframe fixing top 3 failures</button>
+</div>
+
+<!-- JOURNEYS -->
+<div id="panel-journeys" class="panel">
+  <div class="section-title">Choose a persona</div>
+  <div class="persona-grid">
+    <div class="persona-card selected" id="p0" onclick="selectPersona(0)">
+      <div class="persona-avatar" style="background:#E6F1FB;color:#185FA5">SC</div>
+      <div class="p-name">State health coordinator</div>
+      <div class="p-role">Seeking national action plan updates</div>
+    </div>
+    <div class="persona-card" id="p1" onclick="selectPersona(1)">
+      <div class="persona-avatar" style="background:#E1F5EE;color:#0F6E56">CP</div>
+      <div class="p-name">Community provider</div>
+      <div class="p-role">HIV clinic — needs funding info</div>
+    </div>
+    <div class="persona-card" id="p2" onclick="selectPersona(2)">
+      <div class="persona-avatar" style="background:#FAEEDA;color:#854F0B">JP</div>
+      <div class="p-name">Journalist</div>
+      <div class="p-role">Researching EHE initiative</div>
+    </div>
+    <div class="persona-card" id="p3" onclick="selectPersona(3)">
+      <div class="persona-avatar" style="background:#FAECE7;color:#993C1D">PM</div>
+      <div class="p-name">Patient / member public</div>
+      <div class="p-role">Newly diagnosed, seeking resources</div>
+    </div>
+  </div>
+  <div class="journey-area" id="journey-stages"></div>
+  <button class="ask-btn" onclick="sendPrompt('Build an improved user flow for the Patient persona on hhs.gov/oidp using progressive disclosure')">↗ Design improved flow for this persona</button>
+</div>
+
+<!-- OPPORTUNITIES -->
+<div id="panel-opportunities" class="panel">
+  <div class="section-title">Top redesign opportunities</div>
+  <div class="opp-list" id="opp-list"></div>
+  <div class="divider"></div>
+  <button class="ask-btn" onclick="sendPrompt('Build a working React prototype of the OIDP homepage with these improvements applied')">↗ Build redesigned homepage prototype</button>
+</div>
+
+<!-- MICROCOPY -->
+<div id="panel-microcopy" class="panel">
+  <div class="section-title">Microcopy rewrites — before &amp; after</div>
+  <div class="copy-grid" id="copy-grid"></div>
+  <div class="divider"></div>
+  <button class="ask-btn" onclick="sendPrompt('Write a complete microcopy guide for the OIDP section following plain language principles')">↗ Generate full microcopy guide</button>
+</div>
+
+<script>
+const HEURISTICS = [
+  {
+    name: "Visibility of system status",
+    score: 4, status: "warn",
+    detail: "There is no feedback when navigating between sections — no active nav state, no breadcrumb highlighting beyond plain text, no loading indicators.",
+    findings: [
+      "Breadcrumbs are present but styled identically to body text — users can't see 'where they are'.",
+      "Section nav (Initiatives, National Action Plans, Advisory Committees, About Us) has no active/current state styling.",
+      "No indication when content was last meaningfully updated vs. CMS timestamp."
+    ]
+  },
+  {
+    name: "Match between system and the real world",
+    score: 4, status: "warn",
+    detail: "Government acronym soup — OIDP, MHAF, PACCARB, HAI, BOTSEC — is used without plain-language introductions. Users who aren't federal insiders are lost immediately.",
+    findings: [
+      "Homepage uses 'syndemics lens' with no definition or tooltip.",
+      "Advisory committee page lists acronyms as primary navigation labels.",
+      "'National Action Plans' is inside-baseball language — users searching for 'what is the government doing about HIV' won't use this term."
+    ]
+  },
+  {
+    name: "User control and freedom",
+    score: 6, status: "warn",
+    detail: "Basic escape paths exist (breadcrumbs, back navigation) but external redirects (hiv.gov, hhs.gov/hepatitis) send users away with no warning and no easy return.",
+    findings: [
+      "The 'HIV/AIDS' quick link on the homepage navigates to hiv.gov — no indication it leaves hhs.gov.",
+      "Advisory committee links open in new tabs inconsistently.",
+      "No 'recently viewed' or resume-session patterns for users researching across topics."
+    ]
+  },
+  {
+    name: "Consistency and standards",
+    score: 5, status: "warn",
+    detail: "USWDS patterns are used but not consistently applied across the OIDP subsection versus the broader HHS site.",
+    findings: [
+      "Card components on the Initiatives page use images; the National Action Plans page does not — creates visual inconsistency.",
+      "Section sub-nav appears on some pages (About Us has 'Contact Us' as a child) but is absent on others.",
+      "Button styles differ between 'I would like info on…' pills and standard USWDS buttons used elsewhere."
+    ]
+  },
+  {
+    name: "Error prevention",
+    score: 3, status: "fail",
+    detail: "Multiple dead ends. External links leave the site without warning. Content dates suggest some pages haven't been updated in years but are presented as authoritative.",
+    findings: [
+      "MHAF (Minority HIV/AIDS Fund) links to hiv.gov/federal-response/smaif — there is no redirect guard if that page moves.",
+      "Advisory committee calendar has no 'no events scheduled' state — it just shows blank or outdated listings.",
+      "Search bar scoped to 'oidp' is not visible on mobile breakpoints, making recovery from wrong pages difficult."
+    ]
+  },
+  {
+    name: "Recognition over recall",
+    score: 5, status: "warn",
+    detail: "Navigation is shallow (4 items) but not contextual — the 'Topics' link on the homepage isn't in the sub-nav, creating recall dependency.",
+    findings: [
+      "Homepage has a 'Topics' section linking to /oidp/topics/index.html, but 'Topics' doesn't appear in the persistent OIDP sub-nav.",
+      "Quick-access 'I would like info on...' pills appear only on the homepage — not on any interior pages where they'd be equally useful.",
+      "Advisory committee names require memorization — no persistent glossary or tooltip system."
+    ]
+  },
+  {
+    name: "Flexibility and efficiency of use",
+    score: 3, status: "fail",
+    detail: "No shortcuts, no search within OIDP content, no filtering, no way for returning users to jump directly to what they need.",
+    findings: [
+      "There is no way to filter National Action Plans by disease area or year.",
+      "Advisory committee meeting documents are listed chronologically with no search or filter.",
+      "No 'Quick links' pattern for power users (grant managers, researchers) who visit frequently.",
+      "The section-scoped search is hidden in the header and not prominent."
+    ]
+  },
+  {
+    name: "Aesthetic and minimalist design",
+    score: 6, status: "warn",
+    detail: "The USWDS base is clean, but inherited HHS global elements (Freedom 250 banner, Secretary social links in footer, dual footer columns) add significant visual noise.",
+    findings: [
+      "The Freedom 250 banner occupies ~60px of persistent vertical space — it's promotional, not functional, and displaces content.",
+      "Footer is duplicated across HHS-wide and OIDP content — 24+ links visible without scrolling.",
+      "The 'Follow @SecKennedy' footer block introduces a political figure's social channels into a public health information resource."
+    ]
+  },
+  {
+    name: "Help users recognize, diagnose, and recover from errors",
+    score: 4, status: "fail",
+    detail: "404 and dead-link recovery is handled by HHS global pages with no OIDP-specific context or suggested next steps.",
+    findings: [
+      "Broken or outdated links (e.g. to older HAI plan documents) show HHS global 404 with no OIDP navigation retained.",
+      "No inline suggestions when clicking a link to an archived page.",
+      "The OIDP-scoped search returns no results UI that is generic — 'No results found for...' with no related content suggestions."
+    ]
+  },
+  {
+    name: "Help and documentation",
+    score: 7, status: "pass",
+    detail: "Contact information is accessible and the About Us page explains organizational structure reasonably well. National Action Plans include publication dates.",
+    findings: [
+      "Contact Us page is easy to find from About Us.",
+      "Publication dates and 'Content last reviewed' timestamps are present on most pages.",
+      "No glossary for the many acronyms and technical terms used throughout the section."
+    ]
+  }
+];
+
+const JOURNEYS = [
+  {
+    name: "State health coordinator — finding the national HIV action plan",
+    stages: [
+      { name: "Arrive", action: "Googles 'HHS HIV action plan 2024'", touchpoint: "SERP → hhs.gov/oidp", emotion: "neutral", feel: "#888780", pain: "Search may land on archived or outdated versions", opp: "Ensure canonical URLs and structured data" },
+      { name: "Orient", action: "Lands on OIDP homepage, scans nav", touchpoint: "Homepage — 4-item sub-nav", emotion: "confused", feel: "#D85A30", pain: "No immediate signal that 'National Action Plans' is the right path vs 'Initiatives'", opp: "Progressive disclosure: show plan names on hover" },
+      { name: "Navigate", action: "Clicks 'National Action Plans'", touchpoint: "Action plans index page", emotion: "uncertain", feel: "#BA7517", pain: "Plans listed without dates or status — can't tell which is current", opp: "Status badges: 'Active', 'Under revision', 'Archived'" },
+      { name: "Find", action: "Locates correct plan PDF link", touchpoint: "PDF download", emotion: "relieved", feel: "#1D9E75", pain: "PDF opens in new tab without download attribution — version unclear", opp: "Show version, publication date, and file size before download" },
+      { name: "Share", action: "Copies URL to send to colleagues", touchpoint: "Browser address bar", emotion: "frustrated", feel: "#D85A30", pain: "URL is to /national-action-plan/index.html — doesn't link to specific plan", opp: "Deep-linkable plan pages with stable URLs" },
+    ]
+  },
+  {
+    name: "Community HIV clinic provider — seeking Minority HIV/AIDS Fund information",
+    stages: [
+      { name: "Arrive", action: "Navigates from hiv.gov or direct URL", touchpoint: "OIDP homepage", emotion: "purposeful", feel: "#1D9E75", pain: "If arriving from hiv.gov, context switch is jarring — different visual identity", opp: "Consistent header/identity between hiv.gov and hhs.gov/oidp" },
+      { name: "Scan", action: "Looks for funding or MHAF information", touchpoint: "'Initiatives' card on homepage", emotion: "uncertain", feel: "#BA7517", pain: "MHAF card is present but no application status, deadlines, or quick facts visible", opp: "Show deadline countdown / application window status on initiative cards" },
+      { name: "Click through", action: "Follows MHAF link to hiv.gov/smaif", touchpoint: "External redirect to hiv.gov", emotion: "confused", feel: "#D85A30", pain: "No warning that user is leaving hhs.gov — trust and authority concerns", opp: "Exit modal or visible external link indicator" },
+      { name: "Return", action: "Tries to return to OIDP for more context", touchpoint: "Browser back / re-navigation", emotion: "frustrated", feel: "#D85A30", pain: "Lost context — no breadcrumb back to OIDP from hiv.gov", opp: "Contextual 'Back to OIDP' persistent link when entering from OIDP" },
+    ]
+  },
+  {
+    name: "Journalist — researching Ending the HIV Epidemic initiative",
+    stages: [
+      { name: "Arrive", action: "Direct URL to /oidp/initiatives", touchpoint: "Initiatives index", emotion: "neutral", feel: "#888780", pain: "No 'press resources' or 'for media' signal visible", opp: "Media kit / press contact visible on initiative pages" },
+      { name: "Scan", action: "Reads EHE initiative card — seeks data", touchpoint: "EHE initiative card → hiv.gov", emotion: "frustrated", feel: "#D85A30", pain: "Card links away immediately — no summary data, progress metrics, or quick facts on hhs.gov itself", opp: "Embed key stats (e.g. '25% reduction in new infections since 2019') directly on initiative cards" },
+      { name: "Source", action: "Looks for press contacts or reports", touchpoint: "About Us → Contact Us", emotion: "uncertain", feel: "#BA7517", pain: "No press-specific contact path — generic phone and email only", opp: "Add 'Media inquiries' contact on About Us and initiative pages" },
+      { name: "Cite", action: "Cites hhs.gov/oidp in article", touchpoint: "Browser address bar", emotion: "satisfied", feel: "#1D9E75", pain: "Minor — page title in browser tab is just 'Initiatives | HHS.gov', not specific enough", opp: "Descriptive title tags: 'Infectious Disease Initiatives | OIDP | HHS.gov'" },
+    ]
+  },
+  {
+    name: "Member of public — newly diagnosed with HIV, seeking help",
+    stages: [
+      { name: "Arrive", action: "Googles 'what is the government doing about HIV' or 'HIV help government'", touchpoint: "SERP → hhs.gov/oidp", emotion: "anxious", feel: "#D85A30", pain: "OIDP is a policy office, not a services office — but no immediate redirect to actionable resources for patients", opp: "Prominent 'Looking for HIV services near you?' callout → HIV.gov care finder" },
+      { name: "Land", action: "Reads OIDP homepage — sees policy language", touchpoint: "Homepage hero text", emotion: "overwhelmed", feel: "#993C1D", pain: "'Strategic leadership and management…coordination and innovation' — this is org-speak, not patient language. User feels they're in the wrong place.", opp: "Two-track landing: 'I work in public health' vs 'I'm looking for personal help'" },
+      { name: "Click", action: "Clicks 'HIV/AIDS' quick link", touchpoint: "Leaves to hiv.gov", emotion: "uncertain", feel: "#BA7517", pain: "Good destination, but the transition is silent — user doesn't know they've been redirected to a different site", opp: "In-page 'We're redirecting you to HIV.gov, the patient resource' interstitial" },
+      { name: "Lose trust", action: "Encounters jargon — EHE, MHAF, syndemics", touchpoint: "Any interior page if they explore", emotion: "alienated", feel: "#993C1D", pain: "Language signals this site is not for them. Abandonment likely.", opp: "Plain-language glossary, progressive disclosure, 'What this means for you' callouts" },
+    ]
+  }
+];
+
+const OPPORTUNITIES = [
+  { icon: "🎯", title: "Two-track homepage entry", impact: "hi", desc: "The OIDP homepage currently serves one audience — federal health policy professionals — but also receives significant traffic from patients, advocates, and media. A simple 'Who are you?' split at the top (policy professional / patient or public / researcher or press) would route each persona to the right content path immediately. Estimated drop in bounce rate: 20–35%." },
+  { icon: "📊", title: "Inline data on initiative cards", impact: "hi", desc: "Initiative cards (EHE, MHAF, HAI) currently show descriptions but no metrics or status. Adding one key statistic and a status badge ('Ongoing · Updated March 2026') would give journalists, advocates, and coordinators immediate value without clicking away to hiv.gov." },
+  { icon: "🔖", title: "Status badges on National Action Plans", impact: "hi", desc: "Action plans are listed without status or date context. Users cannot distinguish current from archived plans without opening each one. 'Active', 'Under revision', and 'Archived' badges with dates would reduce confusion and save significant time for state coordinators and policy researchers." },
+  { icon: "🔍", title: "Visible, scoped search with smart results", impact: "med", desc: "The OIDP-scoped search is present but hidden in the header and lacks result enrichment. Making it prominent and adding topic clustering (Initiatives, Plans, Advisory Committees) in results would reduce pogo-sticking and help power users find cross-section content." },
+  { icon: "💬", title: "Plain-language glossary system", impact: "med", desc: "PACCARB, MHAF, syndemics, HAI — every acronym used without definition is a user lost. A lightweight tooltip-on-hover glossary system (already standard in accessible gov sites like GOV.UK) would eliminate this friction with minimal engineering effort." },
+  { icon: "📱", title: "Mobile-first navigation rethink", impact: "hi", desc: "The OIDP sub-nav (4 items) collapses into the global HHS mega-menu on mobile, making section navigation inaccessible. OIDP section pages need a persistent bottom tab bar or sticky mini-nav on mobile, where an estimated 45–60% of public health traffic originates." },
+  { icon: "🔗", title: "Exit link transparency", impact: "med", desc: "Multiple links redirect to hiv.gov, hepatitis.gov, and other HHS sub-domains without warning. Gov.UK style exit modals or visible domain indicators (a small 'leaves this site' note) would preserve trust and reduce disorientation, especially for the general public persona." },
+  { icon: "♿", title: "Focus order and ARIA audit", impact: "hi", desc: "The Freedom 250 promotional banner at the top of every page intercepts keyboard focus before main navigation — a WCAG 2.1 failure. A 'Skip to OIDP content' link (distinct from the global 'Skip to main content') and corrected focus order would immediately improve keyboard and screen reader accessibility." },
+];
+
+const MICROCOPY = [
+  {
+    context: "Homepage mission statement",
+    before: "The mission of the Office of Infectious Disease and HIV/AIDS Policy (OIDP) is to provide strategic leadership and management, while encouraging collaboration, coordination, and innovation among federal agencies and stakeholders to reduce the burden of infectious diseases.",
+    after: "OIDP leads federal action to prevent and reduce infectious diseases — from HIV and hepatitis to antibiotic resistance — by coordinating government agencies, funding innovation, and supporting communities most affected.",
+    why: "43% shorter. Leads with outcome ('prevent and reduce'), names the diseases, and humanizes the audience. The original reads as a strategic plan, not a public-facing description."
+  },
+  {
+    context: "Initiatives page intro",
+    before: "The Office of Infectious Disease and HIV/AIDS Policy directs the following initiatives to prevent infectious diseases.",
+    after: "These are our current national programs — each one targeting a specific infectious disease threat affecting millions of Americans.",
+    why: "Drops institutional formality. 'Our current national programs' is plain language. Adding 'millions of Americans' connects policy to impact."
+  },
+  {
+    context: "National Action Plans nav label",
+    before: "National Action Plans",
+    after: "Disease action plans",
+    why: "More descriptive and scannable. 'National Action Plans' is insider language; 'Disease action plans' tells users exactly what they'll find."
+  },
+  {
+    context: "About Us vision statement",
+    before: "Our vision is a world free of infectious diseases.",
+    after: "Our goal: a world where infectious diseases no longer cut lives short.",
+    why: "Slightly more specific and emotionally resonant. 'Cut lives short' creates connection without hyperbole. Still aspirational but grounded."
+  },
+  {
+    context: "Advisory committees intro",
+    before: "OIDP oversees four federal advisory committees that leverage expert advice to prevent infectious diseases in the United States.",
+    after: "Four expert panels advise OIDP on HIV, vaccines, antibiotic resistance, and blood safety — bringing scientific and community perspectives to federal policy.",
+    why: "Names the four topic areas (so users immediately know if they're relevant), explains the 'scientific + community' dual mandate, and removes 'leverage' — a word with no plain-language value."
+  },
+  {
+    context: "Empty state — search no results",
+    before: "No results found.",
+    after: "No results for '{query}' in OIDP content. Try searching on hiv.gov or the full HHS site.",
+    why: "Adds query echo (helps users see what they typed), offers two specific next steps instead of a dead end, and acknowledges OIDP scope limitations proactively."
+  },
+];
+
+function renderHeuristics() {
+  const list = document.getElementById('h-list');
+  HEURISTICS.forEach((h, i) => {
+    const bar_color = h.status === 'fail' ? '#E24B4A' : h.status === 'warn' ? '#EF9F27' : '#639922';
+    const badge_class = h.status === 'fail' ? 'badge-fail' : h.status === 'warn' ? 'badge-warn' : 'badge-pass';
+    const badge_label = h.status === 'fail' ? 'Fail' : h.status === 'warn' ? 'Warn' : 'Pass';
+    list.innerHTML += `<div class="h-item" id="hi${i}" onclick="toggleH(${i})">
+      <div class="h-header">
+        <span class="h-badge ${badge_class}">${badge_label}</span>
+        <span class="h-name">${i+1}. ${h.name}</span>
+        <span class="h-score">${h.score}/10</span>
+      </div>
+      <div class="h-bar-wrap"><div class="h-bar" style="width:${h.score*10}%;background:${bar_color}"></div></div>
+      <div class="h-detail">
+        <div style="margin-bottom:8px;color:var(--color-text-primary);font-size:12px">${h.detail}</div>
+        ${h.findings.map(f => `<div class="h-finding">${f}</div>`).join('')}
+        <button class="ask-btn" onclick="event.stopPropagation();sendPrompt('How do I fix the \\'${h.name}\\' heuristic failure on hhs.gov/oidp?')">↗ How to fix this</button>
+      </div>
+    </div>`;
+  });
+}
+
+function toggleH(i) {
+  const el = document.getElementById('hi'+i);
+  el.classList.toggle('open');
+}
+
+let activePersona = 0;
+function selectPersona(i) {
+  [0,1,2,3].forEach(j => {
+    document.getElementById('p'+j).classList.toggle('selected', j===i);
+  });
+  activePersona = i;
+  renderJourney(i);
+}
+
+function renderJourney(i) {
+  const j = JOURNEYS[i];
+  const area = document.getElementById('journey-stages');
+  const emotionColors = { neutral: '#888780', purposeful: '#1D9E75', confused: '#D85A30', uncertain: '#BA7517', frustrated: '#D85A30', relieved: '#1D9E75', satisfied: '#1D9E75', anxious: '#D85A30', overwhelmed: '#993C1D', alienated: '#993C1D' };
+  area.innerHTML = `<div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:14px">${j.name}</div>` +
+    j.stages.map((s, idx) => `
+      <div class="journey-stage">
+        <div class="stage-header">
+          <div class="stage-num">${idx+1}</div>
+          <div class="stage-name">${s.name}</div>
+          <span style="font-size:11px;padding:2px 8px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-secondary);margin-left:auto">
+            <span class="emotion-dot" style="background:${emotionColors[s.emotion]||'#888'}"></span>${s.emotion}
+          </span>
+        </div>
+        <div class="stage-body">
+          <div class="stage-cell"><div class="cell-label">Action</div><div class="cell-text">${s.action}</div></div>
+          <div class="stage-cell"><div class="cell-label">Pain point</div><div class="cell-text" style="color:#993C1D">${s.pain}</div></div>
+          <div class="stage-cell"><div class="cell-label">Opportunity</div><div class="cell-text" style="color:#3B6D11">${s.opp}</div></div>
+        </div>
+      </div>`).join('');
+}
+
+function renderOpportunities() {
+  const list = document.getElementById('opp-list');
+  OPPORTUNITIES.forEach(o => {
+    const tag = o.impact === 'hi' ? 'High impact' : o.impact === 'med' ? 'Medium impact' : 'Low-hanging fruit';
+    const tagClass = o.impact === 'hi' ? 'tag-hi' : o.impact === 'med' ? 'tag-med' : 'tag-lo';
+    list.innerHTML += `<div class="opp-item">
+      <div class="opp-icon" aria-hidden="true">${o.icon}</div>
+      <div>
+        <div class="opp-title">${o.title}</div>
+        <div class="opp-desc">${o.desc}</div>
+        <span class="opp-tag ${tagClass}">${tag}</span>
+      </div>
+    </div>`;
+  });
+}
+
+function renderMicrocopy() {
+  const grid = document.getElementById('copy-grid');
+  MICROCOPY.forEach(m => {
+    grid.innerHTML += `<div class="copy-pair">
+      <div class="copy-label" style="color:var(--color-text-tertiary)">${m.context}</div>
+      <div class="copy-before"><strong style="font-size:11px;display:block;margin-bottom:3px;color:#854F0B">Current</strong>${m.before}</div>
+      <div class="copy-after"><strong style="font-size:11px;display:block;margin-bottom:3px;color:#3B6D11">Proposed</strong>${m.after}</div>
+      <div class="copy-why">${m.why}</div>
+    </div>`;
+  });
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+renderHeuristics();
+renderJourney(0);
+renderOpportunities();
+renderMicrocopy();
+</script>
