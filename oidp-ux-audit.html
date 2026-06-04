@@ -16,6 +16,12 @@
       --audit-critical: #b50909;
       --audit-warning: #7d4e00;
       --audit-success: #2e7044;
+      --audit-critical-bg: #f8dfe2;
+      --audit-warning-bg: #f9e6af;
+      --audit-success-bg: #dbebde;
+      --audit-info-bg: #e7f6f8;
+      --audit-primary-bg: #d9e8f6;
+      --audit-neutral-bg: #f0f0f0;
     }
 
     html { scroll-behavior: smooth; }
@@ -32,6 +38,26 @@
     .audit-hero__eyebrow { color: #d9e8f6; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
     .audit-hero__lede { color: #e7f6f8; max-width: 64rem; }
     .audit-meta { color: #d9e8f6; }
+
+    .usa-tag.audit-tag {
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 999rem;
+      display: inline-flex;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .01em;
+      line-height: 1.1;
+      padding: .35rem .65rem;
+      text-transform: none;
+      white-space: normal;
+    }
+    .audit-tag--primary { background: var(--audit-primary-bg); border-color: #aacdec; color: #112f4e; }
+    .audit-tag--critical { background: var(--audit-critical-bg); border-color: #f4b2bb; color: #8b0e04; }
+    .audit-tag--warning { background: var(--audit-warning-bg); border-color: #dec69a; color: #5c4100; }
+    .audit-tag--success { background: var(--audit-success-bg); border-color: #b4d0b9; color: #0d542b; }
+    .audit-tag--info { background: var(--audit-info-bg); border-color: #99deea; color: #005ea8; }
+    .audit-tag--neutral { background: var(--audit-neutral-bg); border-color: var(--audit-border); color: #3d4551; }
 
     .audit-score-card { border-top: .5rem solid var(--audit-blue); height: 100%; }
     .audit-score-card--critical { border-top-color: var(--audit-critical); }
@@ -101,7 +127,6 @@
       justify-content: center;
       width: 2rem;
     }
-    .audit-emotion { background: #f5f5f0; color: #3d4551; }
     .audit-emotion::before {
       background: currentColor;
       border-radius: 50%;
@@ -111,13 +136,15 @@
       margin-right: .4rem;
       width: .55rem;
     }
-    .audit-emotion--positive { color: var(--audit-success); }
-    .audit-emotion--negative { color: var(--audit-critical); }
-    .audit-emotion--mixed { color: var(--audit-warning); }
 
     .audit-copy-card { height: 100%; }
-    .audit-copy-before { border-left: .25rem solid var(--audit-warning); }
-    .audit-copy-after { border-left: .25rem solid var(--audit-success); }
+    .audit-copy-before,
+    .audit-copy-after {
+      border-radius: .5rem;
+      padding: .75rem 1rem .75rem 1.25rem;
+    }
+    .audit-copy-before { background: #fff8e8; border-left: .25rem solid var(--audit-warning); color: #5c4100; }
+    .audit-copy-after { background: #edf7ed; border-left: .25rem solid var(--audit-success); color: #0d542b; }
 
     .audit-callout { border-left: .5rem solid var(--audit-blue); }
     .audit-action-bar { background: #eef7ff; border: 1px solid #cfe8ff; }
@@ -150,7 +177,7 @@
     <section aria-labelledby="score-heading" class="margin-bottom-5">
       <div class="display-flex flex-align-center flex-justify margin-bottom-2">
         <h2 id="score-heading" class="font-sans-xl margin-y-0">Audit snapshot</h2>
-        <span class="usa-tag bg-primary-dark">WCAG 2.1 AA target</span>
+        <span class="usa-tag audit-tag audit-tag--primary">WCAG 2.1 AA target</span>
       </div>
       <div class="usa-summary-box audit-callout margin-bottom-3" role="region" aria-labelledby="summary-heading">
         <div class="usa-summary-box__body">
@@ -284,6 +311,24 @@
 
     const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
 
+    function getStatusTagClass(status) {
+      if (status === 'fail') return 'audit-tag--critical';
+      if (status === 'warn') return 'audit-tag--warning';
+      return 'audit-tag--success';
+    }
+
+    function getImpactTagClass(impact) {
+      if (impact === 'High impact') return 'audit-tag--critical';
+      if (impact === 'Medium impact') return 'audit-tag--warning';
+      return 'audit-tag--success';
+    }
+
+    function getEmotionTagClass(emotion) {
+      if (['purposeful', 'satisfied', 'relieved'].includes(emotion)) return 'audit-tag--success';
+      if (['confused', 'frustrated', 'anxious', 'overwhelmed', 'alienated'].includes(emotion)) return 'audit-tag--critical';
+      return 'audit-tag--neutral';
+    }
+
     function promptAction(message) {
       if (typeof window.sendPrompt === 'function') {
         window.sendPrompt(message);
@@ -297,7 +342,7 @@
       list.innerHTML = HEURISTICS.map((item, index) => {
         const id = `heuristic-${index}`;
         const statusClass = item.status === 'fail' ? 'fail' : item.status === 'warn' ? 'warn' : 'pass';
-        const tagClass = item.status === 'fail' ? 'bg-secondary-vivid' : item.status === 'warn' ? 'bg-gold-30v text-ink' : 'bg-green-cool-50v';
+        const tagClass = getStatusTagClass(item.status);
         const statusText = item.status === 'fail' ? 'Needs urgent fix' : item.status === 'warn' ? 'Needs improvement' : 'Meets expectation';
         return `
           <h3 class="usa-accordion__heading">
@@ -307,7 +352,7 @@
           </h3>
           <div id="${id}" class="usa-accordion__content usa-prose"${index === 0 ? '' : ' hidden'}>
             <div class="display-flex flex-align-center flex-wrap grid-gap-1 margin-bottom-2">
-              <span class="usa-tag ${tagClass}">${statusText}</span>
+              <span class="usa-tag audit-tag ${tagClass}">${statusText}</span>
               <strong>${item.score}/10</strong>
             </div>
             <div class="audit-progress margin-bottom-2" role="img" aria-label="Score ${item.score} out of 10">
@@ -339,13 +384,13 @@
       target.innerHTML = `
         <h3 class="font-sans-lg margin-bottom-2">${escapeHtml(persona.name)} journey</h3>
         ${persona.stages.map((stage, stageIndex) => {
-          const tone = ['purposeful', 'satisfied', 'relieved'].includes(stage.emotion) ? 'positive' : ['confused', 'frustrated', 'anxious', 'overwhelmed', 'alienated'].includes(stage.emotion) ? 'negative' : 'mixed';
+          const tagClass = getEmotionTagClass(stage.emotion);
           return `
             <article class="usa-card__container audit-stage padding-3 margin-bottom-3">
               <div class="display-flex flex-align-center flex-wrap grid-gap-1 margin-bottom-2">
                 <span class="audit-stage__number" aria-hidden="true">${stageIndex + 1}</span>
                 <h4 class="font-sans-md margin-y-0">${escapeHtml(stage.name)}</h4>
-                <span class="usa-tag audit-emotion audit-emotion--${tone}">${escapeHtml(stage.emotion)}</span>
+                <span class="usa-tag audit-tag audit-emotion ${tagClass}">${escapeHtml(stage.emotion)}</span>
               </div>
               <div class="grid-row grid-gap">
                 <div class="tablet:grid-col-4"><p class="text-bold margin-bottom-05">Action</p><p class="margin-top-0">${escapeHtml(stage.action)}</p></div>
@@ -362,7 +407,7 @@
         <article class="tablet:grid-col-6 margin-bottom-3">
           <div class="usa-card__container height-full">
             <div class="usa-card__header"><h3 class="usa-card__heading">${escapeHtml(item.title)}</h3></div>
-            <div class="usa-card__body"><p>${escapeHtml(item.desc)}</p><span class="usa-tag ${item.impact === 'High impact' ? 'bg-secondary-vivid' : item.impact === 'Medium impact' ? 'bg-gold-30v text-ink' : 'bg-green-cool-50v'}">${escapeHtml(item.impact)}</span></div>
+            <div class="usa-card__body"><p>${escapeHtml(item.desc)}</p><span class="usa-tag audit-tag ${getImpactTagClass(item.impact)}">${escapeHtml(item.impact)}</span></div>
           </div>
         </article>`).join('');
     }
@@ -374,8 +419,8 @@
           <div class="usa-card__container audit-copy-card">
             <div class="usa-card__header"><h3 class="usa-card__heading">${escapeHtml(item.context)}</h3></div>
             <div class="usa-card__body">
-              <div class="audit-copy-before padding-left-2 margin-bottom-2"><p class="text-bold margin-y-0">Current</p><p class="margin-top-05">${escapeHtml(item.before)}</p></div>
-              <div class="audit-copy-after padding-left-2 margin-bottom-2"><p class="text-bold margin-y-0">Proposed</p><p class="margin-top-05">${escapeHtml(item.after)}</p></div>
+              <div class="audit-copy-before margin-bottom-2"><p class="text-bold margin-y-0">Current</p><p class="margin-top-05">${escapeHtml(item.before)}</p></div>
+              <div class="audit-copy-after margin-bottom-2"><p class="text-bold margin-y-0">Proposed</p><p class="margin-top-05">${escapeHtml(item.after)}</p></div>
               <p class="text-base line-height-sans-4 margin-bottom-0"><strong>Why it helps:</strong> ${escapeHtml(item.why)}</p>
             </div>
           </div>
