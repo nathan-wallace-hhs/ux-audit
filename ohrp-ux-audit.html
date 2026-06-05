@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HHS OHRP UX Audit</title>
+  <style>
+    :root {
+      --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --color-text-primary: #1b1b1b;
+      --color-text-secondary: #565c65;
+      --color-text-tertiary: #71767a;
+      --color-text-danger: #b50909;
+      --color-text-warning: #7d4e00;
+      --color-text-success: #2e7044;
+      --color-text-info: #005ea8;
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f0f0f0;
+      --color-background-danger: #f8dfe2;
+      --color-background-warning: #f9e6af;
+      --color-background-success: #dbebde;
+      --color-background-info: #e7f6f8;
+      --color-border-tertiary: #dfe1e2;
+      --color-border-secondary: #c9c9c9;
+      --color-border-info: #99deea;
+      --border-radius-md: .5rem;
+      --border-radius-lg: .75rem;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      margin: 0;
+      padding: 0 1rem;
+    }
+    button { font-family: inherit; }
+    :focus-visible { outline: .25rem solid #face00; outline-offset: .2rem; }
+    .sr-only {
+      border: 0;
+      clip: rect(0 0 0 0);
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+    .audit {
+      margin: 0 auto;
+      max-width: 680px;
+      padding: 1.5rem 0 3rem;
+    }
+    .audit-title {
+      font-size: 1.75rem;
+      letter-spacing: -.02em;
+      line-height: 1.15;
+      margin: 0 0 .5rem;
+    }
+    .audit-lede {
+      color: var(--color-text-secondary);
+      font-size: .95rem;
+      margin: 0 0 1.5rem;
+    }
+    .section-label {
+      color: var(--color-text-tertiary);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .score-row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(3, 1fr);
+      margin-bottom: 24px;
+    }
+    .score-card {
+      background: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
+      padding: 14px 16px;
+    }
+    .score-card .label { color: var(--color-text-secondary); font-size: 12px; margin-bottom: 6px; }
+    .score-card .value { font-size: 26px; font-weight: 600; line-height: 1; }
+    .score-denominator { color: var(--color-text-tertiary); font-size: 14px; font-weight: 400; }
+    .score-card .sub { color: var(--color-text-tertiary); font-size: 11px; margin-top: 4px; }
+    .v-red { color: var(--color-text-danger); }
+    .v-amber { color: var(--color-text-warning); }
+    .v-green { color: var(--color-text-success); }
+    .persona-row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 24px;
+    }
+    .persona-card {
+      border: .5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 14px 16px;
+    }
+    .persona-header { align-items: center; display: flex; gap: 10px; margin-bottom: 10px; }
+    .persona-avatar {
+      align-items: center;
+      border-radius: 50%;
+      display: flex;
+      flex-shrink: 0;
+      font-size: 13px;
+      font-weight: 600;
+      height: 36px;
+      justify-content: center;
+      width: 36px;
+    }
+    .pa-blue { background: var(--color-background-info); color: var(--color-text-info); }
+    .pa-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+    .pa-teal { background: var(--color-background-success); color: var(--color-text-success); }
+    .pa-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+    .persona-name { color: var(--color-text-primary); font-size: 13px; font-weight: 600; }
+    .persona-role { color: var(--color-text-tertiary); font-size: 11px; }
+    .pain-list { list-style: none; margin: 0; padding: 0; }
+    .pain-list li {
+      color: var(--color-text-secondary);
+      display: flex;
+      font-size: 12px;
+      gap: 6px;
+      line-height: 1.5;
+      padding: 3px 0;
+    }
+    .pain-list li::before { color: var(--color-text-danger); content: "↳"; flex-shrink: 0; font-size: 11px; margin-top: 1px; }
+    .finding-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+    .finding {
+      background: var(--color-background-primary);
+      border: .5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      cursor: pointer;
+      display: flex;
+      gap: 14px;
+      padding: 14px 16px;
+      text-align: left;
+      transition: background .15s, border-color .15s;
+      width: 100%;
+    }
+    .finding:hover { background: var(--color-background-secondary); }
+    .finding-icon {
+      align-items: center;
+      border-radius: var(--border-radius-md);
+      display: flex;
+      flex-shrink: 0;
+      font-size: 16px;
+      height: 32px;
+      justify-content: center;
+      width: 32px;
+    }
+    .fi-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+    .fi-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+    .fi-blue { background: var(--color-background-info); color: var(--color-text-info); }
+    .finding-body { flex: 1; min-width: 0; }
+    .finding-title { color: var(--color-text-primary); display: block; font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+    .finding-desc { color: var(--color-text-secondary); display: block; font-size: 12px; line-height: 1.5; }
+    .badge {
+      border-radius: 20px;
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      margin-top: 5px;
+      padding: 2px 7px;
+    }
+    .b-critical { background: var(--color-background-danger); color: var(--color-text-danger); }
+    .b-serious { background: var(--color-background-warning); color: var(--color-text-warning); }
+    .b-moderate { background: var(--color-background-info); color: var(--color-text-info); }
+    .journey-flow { display: flex; gap: 0; margin-bottom: 24px; overflow-x: auto; }
+    .journey-step { flex: 1; min-width: 90px; }
+    .journey-step .jstep-inner { border: .5px solid var(--color-border-tertiary); border-right: none; padding: 10px 8px; }
+    .journey-step:last-child .jstep-inner { border-right: .5px solid var(--color-border-tertiary); border-radius: 0 var(--border-radius-md) 0 0; }
+    .journey-step:first-child .jstep-inner { border-radius: var(--border-radius-md) 0 0 0; }
+    .jstep-num { color: var(--color-text-tertiary); font-size: 10px; margin-bottom: 4px; }
+    .jstep-name { color: var(--color-text-primary); font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+    .emotion-bar { border-radius: 2px; height: 4px; margin-bottom: 6px; }
+    .jstep-emotion { color: var(--color-text-tertiary); font-size: 10px; }
+    .emotion-green { background: var(--color-background-success); }
+    .emotion-amber { background: var(--color-background-warning); }
+    .emotion-red { background: var(--color-background-danger); }
+    .opp-grid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin-bottom: 24px; }
+    .opp-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+    .opp-card .opp-title { color: var(--color-text-primary); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+    .opp-card .opp-desc { color: var(--color-text-secondary); font-size: 11px; line-height: 1.5; }
+    .divider { border: none; border-top: .5px solid var(--color-border-tertiary); margin: 20px 0; }
+    .tab-bar { border-bottom: .5px solid var(--color-border-tertiary); display: flex; gap: 2px; margin-bottom: 20px; overflow-x: auto; }
+    .tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: -1px;
+      padding: 7px 14px;
+      transition: color .15s, background .15s;
+      white-space: nowrap;
+    }
+    .tab[aria-selected="true"] { border-bottom-color: var(--color-text-primary); color: var(--color-text-primary); }
+    .tab:hover:not([aria-selected="true"]) { background: var(--color-background-secondary); color: var(--color-text-primary); }
+    .panel[hidden] { display: none; }
+    .heuristic-row { align-items: center; border-bottom: .5px solid var(--color-border-tertiary); display: flex; gap: 10px; padding: 8px 0; }
+    .heuristic-row:last-child { border-bottom: none; }
+    .h-label { color: var(--color-text-primary); flex: 1; font-size: 12px; }
+    .h-bar-wrap { background: var(--color-border-tertiary); border-radius: 3px; flex-shrink: 0; height: 6px; width: 120px; }
+    .h-bar { border-radius: 3px; height: 6px; }
+    .h-score { color: var(--color-text-secondary); font-size: 11px; min-width: 34px; text-align: right; }
+    .recom-list { display: flex; flex-direction: column; gap: 6px; list-style: none; margin: 0; padding: 0; }
+    .recom-list li { color: var(--color-text-secondary); display: flex; font-size: 12px; gap: 8px; line-height: 1.6; }
+    .recom-list li .recom-num { color: var(--color-text-primary); flex-shrink: 0; font-weight: 600; min-width: 18px; }
+    .ask-btn {
+      align-items: center;
+      background: none;
+      border: .5px solid var(--color-border-info);
+      border-radius: var(--border-radius-md);
+      color: var(--color-text-info);
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 12px;
+      gap: 5px;
+      margin-top: 12px;
+      padding: 5px 12px;
+      transition: background .15s;
+    }
+    .ask-btn:hover { background: var(--color-background-info); }
+    .prompt-output {
+      background: var(--color-background-info);
+      border: 1px solid var(--color-border-info);
+      border-radius: var(--border-radius-md);
+      color: var(--color-text-info);
+      font-size: 12px;
+      margin-top: 12px;
+      padding: 10px 12px;
+    }
+    @media (max-width: 640px) {
+      body { padding: 0 .75rem; }
+      .score-row, .persona-row, .opp-grid { grid-template-columns: 1fr; }
+      .journey-step { min-width: 130px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="audit">
+    <h1 class="audit-title">OHRP section of HHS.gov UX audit</h1>
+    <p class="audit-lede">A compact report for the Office for Human Research Protections experience, focused on information architecture, user journeys, heuristic failures, and near-term redesign opportunities.</p>
+    <h2 class="sr-only">UX audit report for the OHRP section of HHS.gov</h2>
+
+    <div class="section-label">Overall scores</div>
+    <div class="score-row" aria-label="Overall scores">
+      <div class="score-card">
+        <div class="label">Usability score</div>
+        <div class="value v-amber">4.8<span class="score-denominator">/10</span></div>
+        <div class="sub">Serious friction for most personas</div>
+      </div>
+      <div class="score-card">
+        <div class="label">Findability</div>
+        <div class="value v-red">3.9<span class="score-denominator">/10</span></div>
+        <div class="sub">Critical IA failures</div>
+      </div>
+      <div class="score-card">
+        <div class="label">Accessibility</div>
+        <div class="value v-amber">6.1<span class="score-denominator">/10</span></div>
+        <div class="sub">USWDS compliance helps baseline</div>
+      </div>
+    </div>
+
+    <div class="tab-bar" role="tablist" aria-label="OHRP audit report sections">
+      <button class="tab" type="button" role="tab" id="tab-findings" aria-controls="panel-findings" aria-selected="true">Findings</button>
+      <button class="tab" type="button" role="tab" id="tab-journeys" aria-controls="panel-journeys" aria-selected="false" tabindex="-1">User journeys</button>
+      <button class="tab" type="button" role="tab" id="tab-heuristics" aria-controls="panel-heuristics" aria-selected="false" tabindex="-1">Heuristics</button>
+      <button class="tab" type="button" role="tab" id="tab-recommendations" aria-controls="panel-recommendations" aria-selected="false" tabindex="-1">Recommendations</button>
+    </div>
+
+    <section class="panel" id="panel-findings" role="tabpanel" aria-labelledby="tab-findings">
+      <div class="section-label">Critical &amp; serious issues</div>
+      <div class="finding-list">
+        <button class="finding" type="button" data-prompt="Tell me more about the OHRP navigation architecture problem and how to fix it">
+          <span class="finding-icon fi-red" aria-hidden="true">▦</span>
+          <span class="finding-body">
+            <span class="finding-title">Dual-navigation confusion</span>
+            <span class="finding-desc">OHRP sits inside HHS.gov with two competing nav systems — the global HHS mega-menu (6 top-level items, 80+ links) and a separate OHRP local nav (8 items). Users have no clear signal they have entered a sub-site. The OHRP logo is a low-res JPG placed mid-page rather than in the header, creating a broken mental model. ↗</span>
+            <span class="badge b-critical">Critical</span>
+          </span>
+        </button>
+        <button class="finding" type="button" data-prompt="Explain the OHRP content staleness problem and what it means for user trust">
+          <span class="finding-icon fi-red" aria-hidden="true">◷</span>
+          <span class="finding-body">
+            <span class="finding-title">Stale content erodes trust</span>
+            <span class="finding-desc">The Regulations, Policy &amp; Guidance page shows “Content last reviewed June 30, 2020” — nearly 6 years old as of June 5, 2026. For users making compliance decisions on active research, this is a serious trust signal failure. Federal regulations change and users need to know if what they are reading reflects current law. ↗</span>
+            <span class="badge b-critical">Critical</span>
+          </span>
+        </button>
+        <button class="finding" type="button" data-prompt="What is the right information architecture for the OHRP audience split between researchers and the public?">
+          <span class="finding-icon fi-amber" aria-hidden="true">☷</span>
+          <span class="finding-body">
+            <span class="finding-title">No audience segmentation on entry</span>
+            <span class="finding-desc">The homepage mixes three very different audiences — IRB administrators, investigators, and members of the public — with no wayfinding split. The “I would like info on…” widget (5 links) barely scratches the surface and is sandwiched between promotional imagery and redundant section cards. ↗</span>
+            <span class="badge b-serious">Serious</span>
+          </span>
+        </button>
+        <button class="finding" type="button" data-prompt="How should OHRP fix its left-sidebar navigation on interior pages?">
+          <span class="finding-icon fi-amber" aria-hidden="true">☰</span>
+          <span class="finding-body">
+            <span class="finding-title">Deep sub-nav creates orientation loss</span>
+            <span class="finding-desc">The Regulations page reveals a 3-level deep left sidebar on load: Belmont Report, Regulations &gt; 45 CFR 46 &gt; Subparts B/C/D/E, Decision Charts (two variants), Guidance &gt; 10 sub-categories each with sub-items, plus Informed Consent Posting, Single IRB Exceptions, and Archived Materials. Cognitive overload starts immediately. ↗</span>
+            <span class="badge b-serious">Serious</span>
+          </span>
+        </button>
+        <button class="finding" type="button" data-prompt="What UX improvements would help with the OHRP page layout and visual hierarchy?">
+          <span class="finding-icon fi-blue" aria-hidden="true">▤</span>
+          <span class="finding-body">
+            <span class="finding-title">Homepage layout is redundant and wasteful</span>
+            <span class="finding-desc">The homepage lists 8 section cards as H2 headings after the “I would like info on…” shortcut panel — but these 8 cards map 1:1 to the local nav items already visible. They add length without adding value. Each card contains only 1–2 sentences with no triage information for the user's specific need. ↗</span>
+            <span class="badge b-moderate">Moderate</span>
+          </span>
+        </button>
+        <button class="finding" type="button" data-prompt="What is the right role for the get a web button page in modern OHRP UX?">
+          <span class="finding-icon fi-amber" aria-hidden="true">◴</span>
+          <span class="finding-body">
+            <span class="finding-title">Outdated artifacts surfaced alongside critical content</span>
+            <span class="finding-desc">“Get a Web Button” — a relic of early 2000s webmaster culture — is listed as a sibling page to IRB Registration, Compliance, and core regulations. This signals to users (and search engines) that the site's information architecture has not been audited in years. ↗</span>
+            <span class="badge b-moderate">Moderate</span>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-journeys" role="tabpanel" aria-labelledby="tab-journeys" hidden>
+      <div class="section-label">Synthetic user personas</div>
+      <div class="persona-row">
+        <div class="persona-card">
+          <div class="persona-header"><div class="persona-avatar pa-blue">DR</div><div><div class="persona-name">Dr. Reyes</div><div class="persona-role">Clinical investigator, first FWA</div></div></div>
+          <ul class="pain-list">
+            <li>Lands on OHRP homepage — unclear if this is the right entry point vs IRB website</li>
+            <li>Finds “Register IRBs &amp; Obtain FWAs” in nav but gets wall of text, no clear checklist</li>
+            <li>Cannot tell if regulations she's reading are current (2020 review date)</li>
+            <li>No estimated time or prerequisites shown for FWA process</li>
+          </ul>
+        </div>
+        <div class="persona-card">
+          <div class="persona-header"><div class="persona-avatar pa-amber">SA</div><div><div class="persona-name">Sarah A.</div><div class="persona-role">IRB admin, experienced</div></div></div>
+          <ul class="pain-list">
+            <li>Knows what she needs but must re-orient every visit due to opaque IA</li>
+            <li>Decision Charts (pre-2018 vs 2018) not clearly flagged — risk of using wrong version</li>
+            <li>FAQ index lists 10 categories but no search or filtering</li>
+            <li>Guidance alphabetical list is a very long flat file — no filter by date or topic</li>
+          </ul>
+        </div>
+        <div class="persona-card">
+          <div class="persona-header"><div class="persona-avatar pa-teal">MP</div><div><div class="persona-name">Marcus P.</div><div class="persona-role">Research participant, curious public</div></div></div>
+          <ul class="pain-list">
+            <li>“About Research Participation” is buried below the fold and not clearly signposted</li>
+            <li>Homepage copy is all institutional — no signal this site has info for participants</li>
+            <li>Plain-language content is hard to find; regulatory language dominates</li>
+            <li>No clear “What are my rights?” entry point</li>
+          </ul>
+        </div>
+        <div class="persona-card">
+          <div class="persona-header"><div class="persona-avatar pa-red">CC</div><div><div class="persona-name">Dr. Chen</div><div class="persona-role">Compliance officer, filing complaint</div></div></div>
+          <ul class="pain-list">
+            <li>Compliance &amp; Reporting link in nav is correct, but page gives no triage path</li>
+            <li>No clear distinction between filing a report vs checking status of existing report</li>
+            <li>Contact info requires navigating to About OHRP then Contact Us sub-page</li>
+            <li>No emergency or urgent path prominently surfaced</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-label">Journey: IRB administrator finding the right decision chart</div>
+      <div class="journey-flow" aria-label="IRB administrator journey steps">
+        <div class="journey-step"><div class="jstep-inner"><div class="jstep-num">01</div><div class="jstep-name">Arrives on OHRP index</div><div class="emotion-bar emotion-green" style="width:70%"></div><div class="jstep-emotion">Neutral</div></div></div>
+        <div class="journey-step"><div class="jstep-inner"><div class="jstep-num">02</div><div class="jstep-name">Clicks “Regulations, Policy”</div><div class="emotion-bar emotion-amber" style="width:50%"></div><div class="jstep-emotion">Slightly uncertain</div></div></div>
+        <div class="journey-step"><div class="jstep-inner"><div class="jstep-num">03</div><div class="jstep-name">Sees massive left nav — scans for Decision Charts</div><div class="emotion-bar emotion-red" style="width:80%"></div><div class="jstep-emotion">Overwhelmed</div></div></div>
+        <div class="journey-step"><div class="jstep-inner"><div class="jstep-num">04</div><div class="jstep-name">Finds two chart sets — unsure which applies</div><div class="emotion-bar emotion-red" style="width:90%"></div><div class="jstep-emotion">Anxious / confused</div></div></div>
+        <div class="journey-step"><div class="jstep-inner"><div class="jstep-num">05</div><div class="jstep-name">Reads disambiguation text — resolves version</div><div class="emotion-bar emotion-amber" style="width:55%"></div><div class="jstep-emotion">Relieved but annoyed</div></div></div>
+        <div class="journey-step"><div class="jstep-inner"><div class="jstep-num">06</div><div class="jstep-name">Task complete</div><div class="emotion-bar emotion-green" style="width:60%"></div><div class="jstep-emotion">Done, but unsatisfied</div></div></div>
+      </div>
+      <button class="ask-btn" type="button" data-prompt="Redesign the OHRP decision chart page to fix the version confusion problem">Redesign this journey ↗</button>
+    </section>
+
+    <section class="panel" id="panel-heuristics" role="tabpanel" aria-labelledby="tab-heuristics" hidden>
+      <div class="section-label">Nielsen's 10 heuristics — scored 1–10</div>
+      <div>
+        <div class="heuristic-row"><span class="h-label">Visibility of system status</span><div class="h-bar-wrap"><div class="h-bar" style="width:30%;background:var(--color-background-danger)"></div></div><span class="h-score v-red">3/10</span></div>
+        <div class="heuristic-row"><span class="h-label">Match between system and real world</span><div class="h-bar-wrap"><div class="h-bar" style="width:45%;background:var(--color-background-warning)"></div></div><span class="h-score v-amber">4.5/10</span></div>
+        <div class="heuristic-row"><span class="h-label">User control and freedom</span><div class="h-bar-wrap"><div class="h-bar" style="width:60%;background:var(--color-background-warning)"></div></div><span class="h-score v-amber">6/10</span></div>
+        <div class="heuristic-row"><span class="h-label">Consistency and standards</span><div class="h-bar-wrap"><div class="h-bar" style="width:65%;background:var(--color-background-warning)"></div></div><span class="h-score v-amber">6.5/10</span></div>
+        <div class="heuristic-row"><span class="h-label">Error prevention</span><div class="h-bar-wrap"><div class="h-bar" style="width:30%;background:var(--color-background-danger)"></div></div><span class="h-score v-red">3/10</span></div>
+        <div class="heuristic-row"><span class="h-label">Recognition rather than recall</span><div class="h-bar-wrap"><div class="h-bar" style="width:35%;background:var(--color-background-danger)"></div></div><span class="h-score v-red">3.5/10</span></div>
+        <div class="heuristic-row"><span class="h-label">Flexibility and efficiency of use</span><div class="h-bar-wrap"><div class="h-bar" style="width:40%;background:var(--color-background-warning)"></div></div><span class="h-score v-amber">4/10</span></div>
+        <div class="heuristic-row"><span class="h-label">Aesthetic and minimalist design</span><div class="h-bar-wrap"><div class="h-bar" style="width:35%;background:var(--color-background-danger)"></div></div><span class="h-score v-red">3.5/10</span></div>
+        <div class="heuristic-row"><span class="h-label">Help users recognize and recover from errors</span><div class="h-bar-wrap"><div class="h-bar" style="width:55%;background:var(--color-background-warning)"></div></div><span class="h-score v-amber">5.5/10</span></div>
+        <div class="heuristic-row"><span class="h-label">Help and documentation</span><div class="h-bar-wrap"><div class="h-bar" style="width:60%;background:var(--color-background-warning)"></div></div><span class="h-score v-amber">6/10</span></div>
+      </div>
+      <div style="margin-top:12px"><button class="ask-btn" type="button" data-prompt="Which two OHRP heuristic failures should be fixed first and what would that look like?">Prioritize these ↗</button></div>
+    </section>
+
+    <section class="panel" id="panel-recommendations" role="tabpanel" aria-labelledby="tab-recommendations" hidden>
+      <div class="section-label">Top opportunities</div>
+      <div class="opp-grid">
+        <div class="opp-card"><div class="opp-title">Audience-first entry page</div><div class="opp-desc">Split homepage into three clear lanes: Researchers/Investigators, IRB Staff, and Public. Each lane surfaces the 3–5 most-needed tasks immediately.</div></div>
+        <div class="opp-card"><div class="opp-title">Content freshness signals</div><div class="opp-desc">Add prominent “Last verified” badges to all regulatory pages, ideally with a link to what changed. A 2020 review date on a regulations page is a compliance risk for users.</div></div>
+        <div class="opp-card"><div class="opp-title">Decision chart disambiguation</div><div class="opp-desc">Replace the two ambiguous chart sets with a single entry that asks “When did your research begin?” and routes accordingly. Kill the cognitive fork on entry.</div></div>
+        <div class="opp-card"><div class="opp-title">Streamline left-nav depth</div><div class="opp-desc">Collapse the 3-level deep Regulations nav to a max of 2 levels. Move archived/marginal content (pre-2018 charts, archived materials) behind an “Older resources” disclosure.</div></div>
+      </div>
+      <hr class="divider">
+      <div class="section-label">Prioritized recommendations</div>
+      <ul class="recom-list">
+        <li><span class="recom-num">1.</span><span>Fix content staleness: Add an automated “last reviewed” alert banner on any page whose review date is older than 18 months. This is a zero-cost trust repair.</span></li>
+        <li><span class="recom-num">2.</span><span>Restructure the homepage around audience intent, not org structure. The current 8-card layout mirrors OHRP's internal divisions, not user mental models.</span></li>
+        <li><span class="recom-num">3.</span><span>Reduce left-nav depth on interior pages. The Regulations section's 3-level tree loads on every page — users cannot form a stable mental map. Cap at 2 levels; put depth behind expandable sections.</span></li>
+        <li><span class="recom-num">4.</span><span>Surface a prominent “Which decision chart applies to my study?” disambiguation tool where both chart links currently live.</span></li>
+        <li><span class="recom-num">5.</span><span>Audit and remove or demote zombie pages (Get a Web Button, older archived correspondence lists) that dilute navigation signal.</span></li>
+        <li><span class="recom-num">6.</span><span>Add plain-language participant entry in the header alongside researcher/IRB links — currently the public has no wayfinding signal on arrival.</span></li>
+      </ul>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="ask-btn" type="button" data-prompt="Build a wireframe for an improved OHRP homepage with audience segmentation">Wireframe homepage ↗</button>
+        <button class="ask-btn" type="button" data-prompt="Write a user story backlog for the top 3 OHRP UX fixes">Write user stories ↗</button>
+      </div>
+    </section>
+    <div id="prompt-output" class="prompt-output" aria-live="polite" hidden></div>
+  </main>
+
+  <script>
+    function activateTab(tab) {
+      const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+      tabs.forEach((button) => {
+        const selected = button === tab;
+        button.setAttribute('aria-selected', String(selected));
+        button.tabIndex = selected ? 0 : -1;
+        document.getElementById(button.getAttribute('aria-controls')).hidden = !selected;
+      });
+      tab.focus();
+    }
+
+    function sendPrompt(prompt) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'ux-audit-prompt', prompt }, '*');
+      }
+      const output = document.getElementById('prompt-output');
+      output.hidden = false;
+      output.textContent = 'Prompt ready: ' + prompt;
+    }
+
+    document.addEventListener('click', (event) => {
+      const tab = event.target.closest('[role="tab"]');
+      if (tab) activateTab(tab);
+
+      const promptButton = event.target.closest('[data-prompt]');
+      if (promptButton) sendPrompt(promptButton.dataset.prompt);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      const currentTab = event.target.closest('[role="tab"]');
+      if (!currentTab) return;
+      const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+      const index = tabs.indexOf(currentTab);
+      let nextIndex = index;
+      if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+      if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+      if (event.key === 'Home') nextIndex = 0;
+      if (event.key === 'End') nextIndex = tabs.length - 1;
+      if (nextIndex !== index) {
+        event.preventDefault();
+        activateTab(tabs[nextIndex]);
+      }
+    });
+  </script>
+</body>
+</html>
