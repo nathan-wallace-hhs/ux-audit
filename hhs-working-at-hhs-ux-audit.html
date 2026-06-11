@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HHS Working at HHS UX Audit</title>
+  <style>
+    :root {
+      --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --color-text-primary: #1b1b1b;
+      --color-text-secondary: #565c65;
+      --color-text-tertiary: #71767a;
+      --color-text-info: #005ea8;
+      --color-background-primary: #fff;
+      --color-background-secondary: #f7f7f4;
+      --color-border-primary: #8d9297;
+      --color-border-secondary: #c9c9c9;
+      --color-border-tertiary: #dfe1e2;
+      --border-radius-md: .5rem;
+      --border-radius-lg: .85rem;
+      --critical: #e24b4a;
+      --critical-text: #a32d2d;
+      --warning: #ef9f27;
+      --warning-text: #854f0b;
+      --success: #639922;
+      --success-text: #3b6d11;
+      --info: #378add;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      margin: 0;
+      padding: 0 1rem;
+    }
+    button { font-family: inherit; }
+    :focus-visible { outline: .25rem solid #face00; outline-offset: .2rem; }
+    .sr-only {
+      border: 0;
+      clip: rect(0 0 0 0);
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+    .audit { margin: 0 auto; max-width: 860px; padding: 1.5rem 0 3rem; }
+    .audit-header { align-items: flex-start; display: flex; gap: .75rem; justify-content: space-between; margin-bottom: 1.25rem; }
+    .eyebrow { color: var(--color-text-secondary); font-size: .7rem; letter-spacing: .08em; margin: 0 0 .15rem; text-transform: uppercase; }
+    h1 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 650; letter-spacing: -.02em; line-height: 1.1; margin: 0; }
+    .meta { color: var(--color-text-secondary); font-size: .75rem; margin: 0; text-align: right; }
+    .nav { border-bottom: 1px solid var(--color-border-tertiary); display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1.5rem; padding-bottom: .75rem; }
+    .nav-btn { background: transparent; border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); color: var(--color-text-secondary); cursor: pointer; font-size: .82rem; padding: .45rem .85rem; transition: background .15s; }
+    .nav-btn.active { background: var(--color-background-secondary); border-color: var(--color-border-primary); color: var(--color-text-primary); font-weight: 650; }
+    .nav-btn:hover:not(.active) { background: var(--color-background-secondary); }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .summary-hero { align-items: center; background: var(--color-background-secondary); border-radius: var(--border-radius-lg); display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; padding: 1.25rem; }
+    .hero-score { color: var(--color-text-primary); font-size: 3.25rem; font-weight: 650; letter-spacing: -.04em; line-height: 1; }
+    .hero-denom { color: var(--color-text-secondary); font-size: 1.15rem; }
+    .hero-meta { flex: 1; min-width: 16rem; }
+    .hero-title { font-size: 1rem; font-weight: 650; margin: 0 0 .25rem; }
+    .hero-sub { color: var(--color-text-secondary); font-size: .88rem; margin: 0; }
+    .tag-list, .legend, .pill-row, .rec-meta { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .65rem; }
+    .badge { border-radius: 999px; display: inline-block; font-size: .72rem; font-weight: 650; margin-right: .25rem; padding: .18rem .55rem; }
+    .badge-red { background: #fcebeb; color: var(--critical-text); }
+    .badge-amber { background: #faeeda; color: var(--warning-text); }
+    .badge-green { background: #eaf3de; color: var(--success-text); }
+    .badge-blue { background: #e6f1fb; color: #185fa5; }
+    .badge-gray { background: #f1efe8; color: #5f5e5a; }
+    .metric-grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); margin-bottom: 1.5rem; }
+    .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: .9rem; text-align: center; }
+    .metric-num { color: var(--color-text-primary); font-size: 1.5rem; font-weight: 650; }
+    .metric-label { color: var(--color-text-secondary); font-size: .75rem; margin-top: .2rem; }
+    .section-label { color: var(--color-text-secondary); font-size: .72rem; font-weight: 650; letter-spacing: .08em; margin: 1.35rem 0 .6rem; text-transform: uppercase; }
+    .card { background: var(--color-background-primary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); margin-bottom: .8rem; padding: 1rem 1.25rem; }
+    .card-title { color: var(--color-text-primary); font-size: .9rem; font-weight: 650; margin-bottom: .45rem; }
+    .issue-row, .rec-row { align-items: flex-start; border-bottom: 1px solid var(--color-border-tertiary); display: flex; gap: .75rem; padding: .72rem 0; }
+    .issue-row:first-child, .rec-row:first-child { padding-top: 0; }
+    .issue-row:last-child, .rec-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .issue-score { align-items: center; border-radius: 50%; display: flex; flex-shrink: 0; font-size: .7rem; font-weight: 700; height: 1.75rem; justify-content: center; margin-top: .1rem; min-width: 1.75rem; }
+    .score-r { background: #fcebeb; color: var(--critical-text); }
+    .score-a { background: #faeeda; color: var(--warning-text); }
+    .score-g { background: #eaf3de; color: var(--success-text); }
+    .issue-text, .rec-body { flex: 1; }
+    .issue-title, .rec-title { color: var(--color-text-primary); font-size: .84rem; font-weight: 650; }
+    .issue-desc, .rec-detail { color: var(--color-text-secondary); font-size: .78rem; line-height: 1.55; margin-top: .15rem; }
+    .heuristic-bar { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .65rem; }
+    .bar-header { align-items: center; display: flex; justify-content: space-between; }
+    .bar-name, .bar-score { font-size: .78rem; }
+    .bar-score { color: var(--color-text-secondary); font-weight: 650; }
+    .bar-track { background: var(--color-background-secondary); border-radius: 999px; height: .4rem; overflow: hidden; }
+    .bar-fill { border-radius: 999px; height: 100%; }
+    .journey-stage { border-left: 2px solid var(--color-border-tertiary); margin-bottom: 1.15rem; padding-left: 1rem; position: relative; }
+    .journey-stage::before { background: var(--color-background-secondary); border: 2px solid var(--color-border-secondary); border-radius: 50%; content: ''; height: .5rem; left: -.31rem; position: absolute; top: .25rem; width: .5rem; }
+    .stage-name { color: var(--color-text-primary); font-size: .84rem; font-weight: 650; margin-bottom: .35rem; }
+    .emotion-row { align-items: center; display: flex; font-size: .78rem; gap: .45rem; margin-bottom: .25rem; }
+    .emotion-icon { font-size: .95rem; min-width: 1.25rem; }
+    .emotion-text { color: var(--color-text-secondary); }
+    .pill { border: 1px solid var(--color-border-tertiary); border-radius: 999px; color: var(--color-text-secondary); font-size: .7rem; padding: .12rem .55rem; }
+    .two-col { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } .audit-header { display: block; } .meta { margin-top: .5rem; text-align: left; } }
+    .priority-dot { border-radius: 50%; flex-shrink: 0; height: .65rem; margin-top: .35rem; min-width: .65rem; }
+    .p1 { background: var(--critical); }
+    .p2 { background: var(--warning); }
+    .p3 { background: var(--success); }
+    .legend { margin-bottom: 1rem; margin-top: 0; }
+    .legend-item { align-items: center; color: var(--color-text-secondary); display: flex; font-size: .76rem; gap: .3rem; }
+    .legend-dot { border-radius: 50%; height: .65rem; width: .65rem; }
+    .anchor-link { background: none; border: 0; color: var(--color-text-info); cursor: pointer; display: inline-block; font-size: .78rem; margin-top: .45rem; padding: 0; text-decoration: underline; }
+    table { border-collapse: collapse; font-size: .78rem; width: 100%; }
+    th { color: var(--color-text-secondary); font-weight: 650; text-align: left; }
+    th, td { border-bottom: 1px solid var(--color-border-tertiary); padding: .5rem .25rem; vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+  </style>
+</head>
+<body>
+  <main class="audit">
+    <h2 class="sr-only">UX audit dashboard for the HHS Working at HHS careers section, covering heuristics, user journeys, information architecture, and prioritized recommendations.</h2>
+
+    <header class="audit-header">
+      <div>
+        <p class="eyebrow">HHS.gov / Working at HHS — UX audit</p>
+        <h1>Careers Section Review</h1>
+      </div>
+      <div>
+        <p class="meta">Audited June 2026</p>
+        <p class="meta">4 pages · 4 personas</p>
+      </div>
+    </header>
+
+    <nav class="nav" role="tablist" aria-label="Audit sections">
+      <button class="nav-btn active" type="button" onclick="show('overview')" role="tab" aria-selected="true">Overview</button>
+      <button class="nav-btn" type="button" onclick="show('heuristics')" role="tab" aria-selected="false">Heuristics</button>
+      <button class="nav-btn" type="button" onclick="show('journeys')" role="tab" aria-selected="false">User journeys</button>
+      <button class="nav-btn" type="button" onclick="show('ia')" role="tab" aria-selected="false">IA & navigation</button>
+      <button class="nav-btn" type="button" onclick="show('recs')" role="tab" aria-selected="false">Recommendations</button>
+    </nav>
+
+    <section id="panel-overview" class="panel active" role="tabpanel">
+      <div class="summary-hero">
+        <div><span class="hero-score">4.7</span><span class="hero-denom">/10</span></div>
+        <div class="hero-meta">
+          <p class="hero-title">Overall UX score — works, but remains hard to evaluate and navigate</p>
+          <p class="hero-sub">The careers section has the right structural pieces: benefits detail, employee stories, a JavaScript-powered job search, and a targeted disability hiring page. The experience still needs stronger candidate messaging, non-JavaScript fallback content, and clearer audience pathways.</p>
+          <div class="tag-list">
+            <span class="badge badge-red">8 critical issues</span>
+            <span class="badge badge-amber">11 moderate issues</span>
+            <span class="badge badge-green">4 strengths</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric"><div class="metric-num" style="color:var(--warning)">3.5</div><div class="metric-label">Clarity & findability</div></div>
+        <div class="metric"><div class="metric-num" style="color:var(--warning)">4.0</div><div class="metric-label">Content quality</div></div>
+        <div class="metric"><div class="metric-num" style="color:var(--warning)">5.0</div><div class="metric-label">Conversion path</div></div>
+        <div class="metric"><div class="metric-num" style="color:var(--critical)">3.5</div><div class="metric-label">Accessibility posture</div></div>
+        <div class="metric"><div class="metric-num" style="color:var(--warning)">4.0</div><div class="metric-label">Trust & brand</div></div>
+        <div class="metric"><div class="metric-num" style="color:var(--warning)">4.5</div><div class="metric-label">Benefits coverage</div></div>
+      </div>
+
+      <p class="section-label">Pages audited</p>
+      <div class="card">
+        <div class="issue-row">
+          <div class="issue-score score-a">Hub</div>
+          <div class="issue-text">
+            <div class="issue-title">Working at HHS</div>
+            <div class="issue-desc">Primary landing page covering pay, benefits, leave, and wellness. Dense prose, limited visual hierarchy, no employer value proposition, and no conversion-oriented CTA placement strategy.</div>
+          </div>
+          <span class="badge badge-amber">4/10</span>
+        </div>
+        <div class="issue-row">
+          <div class="issue-score score-a">JS</div>
+          <div class="issue-text">
+            <div class="issue-title">Careers Job Search</div>
+            <div class="issue-desc">The job search does function when JavaScript loads, but the initial/static page exposes little more than the “HHS Job Search” heading. Without a resilient loading state, error message, or crawlable fallback, the page can appear empty in constrained, slow, or assistive-technology contexts.</div>
+          </div>
+          <span class="badge badge-amber">4/10</span>
+        </div>
+        <div class="issue-row">
+          <div class="issue-score score-a">Vid</div>
+          <div class="issue-text">
+            <div class="issue-title">I Am HHS</div>
+            <div class="issue-desc">Video series with employee stories. The videos can be motivational, but each entry needs accompanying text context: role, operating division, career path, transcript link, caption status, and related job-search prompts.</div>
+          </div>
+          <span class="badge badge-amber">4.5/10</span>
+        </div>
+        <div class="issue-row">
+          <div class="issue-score score-g">A11y</div>
+          <div class="issue-text">
+            <div class="issue-title">How to Apply — Persons with Disabilities</div>
+            <div class="issue-desc">Well-structured and recently updated in June 2026. Contains Schedule A guidance, specific open roles, and SPPC information. This is the strongest page in the section.</div>
+          </div>
+          <span class="badge badge-green">6/10</span>
+        </div>
+      </div>
+
+      <p class="section-label">Top critical failures</p>
+      <div class="card">
+        <div class="issue-row">
+          <div class="issue-score score-r">1</div>
+          <div class="issue-text">
+            <div class="issue-title">No employer value proposition</div>
+            <div class="issue-desc">The hub page opens with a generic statement and quickly moves into benefits policy. There is no mission-driven “why HHS” narrative, no proof points, and no differentiation from other federal employers.</div>
+          </div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-score score-r">2</div>
+          <div class="issue-text">
+            <div class="issue-title">Job search depends too heavily on client-side rendering</div>
+            <div class="issue-desc">The search experience is not broken, but it is fragile: meaningful results arrive only after JavaScript runs. Users need a visible loading state, failure state, and plain fallback link to HHS-filtered USAJOBS results so the path still works when the widget is delayed or unavailable.</div>
+          </div>
+        </div>
+        <div class="issue-row">
+          <div class="issue-score score-r">3</div>
+          <div class="issue-text">
+            <div class="issue-title">Freshness and evidence signals are uneven</div>
+            <div class="issue-desc">Some pages show active maintenance, especially the disabilities hiring content. Other content still needs stronger freshness cues, current compensation links, transcript availability, and a visible governance cadence.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-heuristics" class="panel" role="tabpanel">
+      <p class="issue-desc" style="font-size:.84rem;margin-bottom:1rem">Scores against Nielsen’s 10 usability heuristics. Scale: 1 critical failure to 10 excellent. Job search scoring is updated to reflect that the search works when JavaScript loads, but remains weak for resilience, accessibility, and crawlability.</p>
+      <div id="heuristic-bars"></div>
+
+      <p class="section-label">Detailed findings by heuristic</p>
+      <div class="card"><div class="card-title"><span class="badge badge-amber">H1 · 4/10</span> Visibility of system status</div><div class="issue-desc">The job search needs explicit status feedback: loading copy while the JavaScript widget initializes, a “no results” state, a widget-failure state, and a persistent fallback link. Without those states, users can mistake delayed loading for an empty page.</div></div>
+      <div class="card"><div class="card-title"><span class="badge badge-red">H2 · 3/10</span> Match between system and the real world</div><div class="issue-desc">Pay, retirement, and benefits copy leads with federal HR terminology such as GS classification, locality pay surveys, and FERS/CSRS. Candidates need plain-language answers: what can I earn, what benefits matter, and how do I compare options?</div></div>
+      <div class="card"><div class="card-title"><span class="badge badge-amber">H3 · 5/10</span> User control and freedom</div><div class="issue-desc">The sidebar gives basic within-section movement. However, the long benefits page lacks anchor navigation, external links can interrupt context, and the job search does not offer enough recovery routes if the JavaScript widget fails.</div></div>
+      <div class="card"><div class="card-title"><span class="badge badge-amber">H4 · 5/10</span> Consistency and standards</div><div class="issue-desc">The section generally follows the broader HHS.gov template, but subpages vary in depth and structure. The disabilities page is actionable and structured; the hub reads like a benefits policy dump.</div></div>
+      <div class="card"><div class="card-title"><span class="badge badge-amber">H5 · 4/10</span> Error prevention</div><div class="issue-desc">A JavaScript-dependent search flow should prevent perceived failure by shipping fallback content and clear errors. Link governance should also avoid stale salary or benefits references.</div></div>
+      <div class="card"><div class="card-title"><span class="badge badge-red">H6 · 2/10</span> Recognition rather than recall</div><div class="issue-desc">The site offers no browsable role families, operating divisions, student/recent graduate path, or veteran path. Users must already know what to search for and how federal hiring works.</div></div>
+      <div class="card"><div class="card-title"><span class="badge badge-amber">H7 · 5/10</span> Flexibility and efficiency of use</div><div class="issue-desc">The Schedule A page shows what efficient shortcuts can look like, with direct links and contact information. General applicants need comparable shortcuts: recent postings, remote roles, entry-level openings, and division filters.</div></div>
+      <div class="card"><div class="card-title"><span class="badge badge-red">H8 · 3/10</span> Aesthetic and minimalist design</div><div class="issue-desc">The hub page presents too many benefits details in a dense wall of text. Cards, summaries, and progressive disclosure would make the same content easier to scan.</div></div>
+      <div class="card"><div class="card-title"><span class="badge badge-amber">H9 · 6/10</span> Help users recognize, diagnose, and recover from errors</div><div class="issue-desc">The disabilities page gives alternate pathways through USAJOBS, SPPC directories, and HR contacts. The general hub and JavaScript job search should provide equivalent recovery guidance.</div></div>
+      <div class="card"><div class="card-title"><span class="badge badge-amber">H10 · 5/10</span> Help and documentation</div><div class="issue-desc">The section relies on OPM for much of the explanation. First-time federal applicants need an HHS-specific onboarding path, hiring-process FAQ, and links that preserve context.</div></div>
+    </section>
+
+    <section id="panel-journeys" class="panel" role="tabpanel">
+      <p class="issue-desc" style="font-size:.84rem;margin-bottom:1rem">Four synthetic persona journeys mapped through the current careers section. Emotional states and friction points note the updated finding that job search works after JavaScript loads, but may appear blank beforehand.</p>
+      <div id="persona-tabs" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem">
+        <button class="nav-btn active" type="button" onclick="showPersona('p1')">Mid-career applicant</button>
+        <button class="nav-btn" type="button" onclick="showPersona('p2')">Recent grad</button>
+        <button class="nav-btn" type="button" onclick="showPersona('p3')">Veteran / Schedule A</button>
+        <button class="nav-btn" type="button" onclick="showPersona('p4')">Accessibility seeker</button>
+      </div>
+
+      <div id="journey-p1">
+        <div class="card"><div class="issue-desc" style="font-size:.84rem"><strong style="color:var(--color-text-primary)">Marcus, 38 — Private-sector health policy analyst</strong> considering a government career for mission alignment and stability.</div></div>
+        <div class="journey-stage" style="border-color:var(--info)"><div class="stage-name">1 — Arrives at hub page</div><div class="emotion-row"><span class="emotion-icon">😐</span><span class="emotion-text">Expects a clear “why HHS” pitch but finds a generic introduction and benefits policy first.</span></div><div class="pill-row"><span class="pill">Pain: no mission hook</span><span class="pill">Pain: jargon-first content</span></div></div>
+        <div class="journey-stage" style="border-color:var(--warning)"><div class="stage-name">2 — Scans compensation and benefits</div><div class="emotion-row"><span class="emotion-icon">😓</span><span class="emotion-text">Tries to compare HHS compensation to his current role but must parse locality pay and grade explanations without guided examples.</span></div><div class="pill-row"><span class="pill">Pain: no salary explainer</span><span class="pill">Pain: dense text</span></div></div>
+        <div class="journey-stage" style="border-color:var(--warning)"><div class="stage-name">3 — Opens job search</div><div class="emotion-row"><span class="emotion-icon">⏳</span><span class="emotion-text">The search can work once JavaScript initializes, but the page needs visible loading and fallback states to avoid looking empty.</span></div><div class="pill-row"><span class="pill">Risk: perceived broken state</span><span class="pill">Need: fallback USAJOBS link</span></div></div>
+        <div class="journey-stage" style="border-color:var(--success)"><div class="stage-name">Outcome</div><div class="emotion-row"><span class="emotion-icon">⚠️</span><span class="emotion-text">May continue if the widget loads quickly; otherwise likely goes directly to USAJOBS and loses HHS-specific context.</span></div></div>
+      </div>
+
+      <div id="journey-p2" hidden>
+        <div class="card"><div class="issue-desc" style="font-size:.84rem"><strong style="color:var(--color-text-primary)">Zoe, 23 — Recent MPH graduate</strong> looking for an entry-level federal public health role.</div></div>
+        <div class="journey-stage" style="border-color:var(--info)"><div class="stage-name">1 — Looks for early-career pathways</div><div class="emotion-row"><span class="emotion-icon">😕</span><span class="emotion-text">Finds no student, recent graduate, Pathways, PMF, or internship entry point on the hub.</span></div><div class="pill-row"><span class="pill">Missing: Pathways</span><span class="pill">Missing: entry-level guidance</span></div></div>
+        <div class="journey-stage" style="border-color:var(--warning)"><div class="stage-name">2 — Watches I Am HHS videos</div><div class="emotion-row"><span class="emotion-icon">🙂</span><span class="emotion-text">The videos may inspire, but titles alone do not explain role level, division, skills, or how employees entered federal service.</span></div><div class="pill-row"><span class="pill">Positive: mission resonance</span><span class="pill">Pain: no context cards</span></div></div>
+        <div class="journey-stage" style="border-color:var(--warning)"><div class="stage-name">3 — Attempts job search</div><div class="emotion-row"><span class="emotion-icon">⏳</span><span class="emotion-text">The JavaScript search is especially risky for first-time applicants who may not know USAJOBS is the fallback destination.</span></div></div>
+      </div>
+
+      <div id="journey-p3" hidden>
+        <div class="card"><div class="issue-desc" style="font-size:.84rem"><strong style="color:var(--color-text-primary)">James, 34 — Army veteran</strong> separating from service and exploring civilian federal roles with a disability rating.</div></div>
+        <div class="journey-stage" style="border-color:var(--info)"><div class="stage-name">1 — Scans for veteran-specific content</div><div class="emotion-row"><span class="emotion-icon">😐</span><span class="emotion-text">Finds no dedicated content for Veterans’ Preference, VEOA, VRA, or translating military experience.</span></div><div class="pill-row"><span class="pill">Missing: veterans pathway</span><span class="pill">Missing: preference guidance</span></div></div>
+        <div class="journey-stage" style="border-color:var(--success)"><div class="stage-name">2 — Finds disabilities page</div><div class="emotion-row"><span class="emotion-icon">🙂</span><span class="emotion-text">Finds Schedule A, current links, and SPPC contact information. The page is useful, but it is not a replacement for veteran-specific hiring guidance.</span></div></div>
+      </div>
+
+      <div id="journey-p4" hidden>
+        <div class="card"><div class="issue-desc" style="font-size:.84rem"><strong style="color:var(--color-text-primary)">Maria, 29 — Deaf applicant</strong> using assistive technology and exploring FDA or CDC data roles.</div></div>
+        <div class="journey-stage" style="border-color:var(--critical)"><div class="stage-name">1 — Encounters video-first storytelling</div><div class="emotion-row"><span class="emotion-icon">❌</span><span class="emotion-text">The I Am HHS videos need clearly linked transcripts, caption status, and text summaries so mission-story content is available beyond embedded video.</span></div><div class="pill-row"><span class="pill">Critical: transcript access</span><span class="pill">Need: text summaries</span></div></div>
+        <div class="journey-stage" style="border-color:var(--warning)"><div class="stage-name">2 — Uses job search</div><div class="emotion-row"><span class="emotion-icon">⚠️</span><span class="emotion-text">A JavaScript-rendered search can be accessible, but the page must expose status messages and fallback links to assistive technologies.</span></div></div>
+        <div class="journey-stage" style="border-color:var(--success)"><div class="stage-name">3 — Finds disabilities hiring page</div><div class="emotion-row"><span class="emotion-icon">🙂</span><span class="emotion-text">The Schedule A page has clearer text structure and remains the strongest support experience in the section.</span></div></div>
+      </div>
+    </section>
+
+    <section id="panel-ia" class="panel" role="tabpanel">
+      <p class="issue-desc" style="font-size:.84rem;margin-bottom:1rem">Information architecture and navigation analysis across the careers section.</p>
+      <div class="two-col">
+        <div>
+          <p class="section-label">Section structure</p>
+          <div class="card">
+            <div class="issue-desc" style="font-family:ui-monospace, SFMono-Regular, Menlo, monospace;line-height:1.85">
+              <strong style="color:var(--color-text-primary)">Working at HHS (hub)</strong><br>
+              ├── I Am HHS (videos)<br>
+              ├── Search Jobs <span style="color:var(--warning-text)">JS-rendered</span><br>
+              └── Apply — Disabilities<br><br>
+              Missing branches:<br>
+              ├── Students & Recent Grads<br>
+              ├── Veterans<br>
+              ├── Hiring process overview<br>
+              └── Division career pages
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="section-label">Navigation depth issues</p>
+          <div class="card">
+            <div class="issue-row"><div class="issue-score score-r">IA</div><div class="issue-text"><div class="issue-title">Hub underuses the CTA path</div><div class="issue-desc">The search CTA appears early, but there are few secondary CTAs after benefit sections to re-engage users who scroll through long content.</div></div></div>
+            <div class="issue-row"><div class="issue-score score-a">JS</div><div class="issue-text"><div class="issue-title">Search visibility depends on runtime state</div><div class="issue-desc">Because results load via JavaScript, the static IA does not expose job categories, role families, or a durable search fallback.</div></div></div>
+            <div class="issue-row"><div class="issue-score score-a">Vid</div><div class="issue-text"><div class="issue-title">I Am HHS is a flat video list</div><div class="issue-desc">Stories are not grouped by division, career type, role level, location, or pathway. Discoverability depends on scrolling.</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="section-label">Missing audience pathways</p>
+      <div class="card">
+        <table>
+          <thead><tr><th>Audience</th><th>Current coverage</th><th>Gap severity</th></tr></thead>
+          <tbody>
+            <tr><td>Mid-career / lateral hire</td><td>Generic benefits page and JS job search</td><td><span class="badge badge-amber">Moderate</span></td></tr>
+            <tr><td>Students / recent grads</td><td>No dedicated pathway surfaced</td><td><span class="badge badge-red">Critical</span></td></tr>
+            <tr><td>Veterans</td><td>Partial, mostly via disabilities page adjacency</td><td><span class="badge badge-red">Critical</span></td></tr>
+            <tr><td>People with disabilities</td><td>Dedicated page with useful guidance</td><td><span class="badge badge-green">Covered</span></td></tr>
+            <tr><td>Division-specific seekers</td><td>No division career pages linked from the hub</td><td><span class="badge badge-red">Critical</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="panel-recs" class="panel" role="tabpanel">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot p1"></span>P1 — Immediate (0–30 days)</span>
+        <span class="legend-item"><span class="legend-dot p2"></span>P2 — Near-term (30–90 days)</span>
+        <span class="legend-item"><span class="legend-dot p3"></span>P3 — Strategic (90+ days)</span>
+      </div>
+
+      <p class="section-label">P1 — Immediate fixes</p>
+      <div class="card">
+        <div class="rec-row"><div class="priority-dot p1"></div><div class="rec-body"><div class="rec-title">Harden the JavaScript job search experience</div><div class="rec-detail">Keep the working search widget, but add a visible loading state, empty state, error state, and a prominent fallback link to HHS-filtered USAJOBS results. Add a short explanation that results are loading from USAJOBS or the search provider.</div><div class="rec-meta"><span class="badge badge-red">Critical</span><span class="badge badge-gray">1–2 days effort</span></div></div></div>
+        <div class="rec-row"><div class="priority-dot p1"></div><div class="rec-body"><div class="rec-title">Add transcript and context links to all I Am HHS videos</div><div class="rec-detail">Provide captions, transcript links, text summaries, and role metadata for each video. This improves accessibility, search visibility, and candidate self-identification.</div><div class="rec-meta"><span class="badge badge-red">Accessibility</span><span class="badge badge-gray">Medium effort</span></div></div></div>
+        <div class="rec-row"><div class="priority-dot p1"></div><div class="rec-body"><div class="rec-title">Audit compensation and benefits links</div><div class="rec-detail">Replace stale year-specific compensation links with current or durable landing pages where appropriate, and document ownership for quarterly link checks.</div><div class="rec-meta"><span class="badge badge-red">Trust</span><span class="badge badge-gray">30-minute fix + process</span></div></div></div>
+      </div>
+
+      <p class="section-label">P2 — Near-term improvements</p>
+      <div class="card">
+        <div class="rec-row"><div class="priority-dot p2"></div><div class="rec-body"><div class="rec-title">Redesign the hub page with scannable benefit cards</div><div class="rec-detail">Replace the dense benefits wall with a card grid, short summaries, and progressive disclosure for detailed policy content. Repeat job-search CTAs after major sections.</div><div class="rec-meta"><span class="badge badge-amber">High impact</span><span class="badge badge-gray">2–3 week design + dev</span></div></div></div>
+        <div class="rec-row"><div class="priority-dot p2"></div><div class="rec-body"><div class="rec-title">Add an employer value proposition above the fold</div><div class="rec-detail">Lead with a mission-driven headline, proof points about HHS scale and public impact, and employee story excerpts that connect to current openings.</div><div class="rec-meta"><span class="badge badge-amber">Conversion lift</span><span class="badge badge-gray">1 week content + design</span></div></div></div>
+        <div class="rec-row"><div class="priority-dot p2"></div><div class="rec-body"><div class="rec-title">Create Students & Recent Grads and Veterans pathway pages</div><div class="rec-detail">Surface Pathways, PMF, internships, Veterans’ Preference, VEOA, VRA, Schedule A interplay, and practical USAJOBS search tips for each audience.</div><div class="rec-meta"><span class="badge badge-amber">New audiences</span><span class="badge badge-gray">3–4 week effort</span></div></div></div>
+      </div>
+
+      <p class="section-label">P3 — Strategic redesign</p>
+      <div class="card">
+        <div class="rec-row"><div class="priority-dot p3"></div><div class="rec-body"><div class="rec-title">Build audience-segmented career pathways</div><div class="rec-detail">Add a “Who are you?” entry pattern for mid-career professionals, students/recent grads, veterans, people with disabilities, and current federal employees.</div><div class="rec-meta"><span class="badge badge-blue">High impact</span><span class="badge badge-gray">8–12 week project</span></div></div></div>
+        <div class="rec-row"><div class="priority-dot p3"></div><div class="rec-body"><div class="rec-title">Integrate division-level career pages</div><div class="rec-detail">Connect candidates to CDC, NIH, FDA, HRSA, CMS, and other division-specific missions, skills, locations, and active openings.</div><div class="rec-meta"><span class="badge badge-blue">Cross-divisional</span><span class="badge badge-gray">6-month initiative</span></div></div></div>
+        <div class="rec-row"><div class="priority-dot p3"></div><div class="rec-body"><div class="rec-title">Establish a content governance cadence</div><div class="rec-detail">Assign owners, quarterly freshness checks, link validation, transcript checks, and job-search widget monitoring. The disabilities page demonstrates that active upkeep is achievable.</div><div class="rec-meta"><span class="badge badge-blue">Maintenance</span><span class="badge badge-gray">Process design</span></div></div></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function show(id) {
+      document.querySelectorAll('.panel').forEach(function(panel) { panel.classList.remove('active'); });
+      document.querySelectorAll('.nav[role="tablist"] > .nav-btn').forEach(function(button) {
+        button.classList.remove('active');
+        button.setAttribute('aria-selected', 'false');
+      });
+      var panel = document.getElementById('panel-' + id);
+      if (panel) panel.classList.add('active');
+      var button = document.querySelector('[onclick="show(\'' + id + '\')"]');
+      if (button) {
+        button.classList.add('active');
+        button.setAttribute('aria-selected', 'true');
+      }
+      buildHeuristics();
+    }
+
+    function showPersona(id) {
+      ['p1', 'p2', 'p3', 'p4'].forEach(function(persona) {
+        var element = document.getElementById('journey-' + persona);
+        if (element) element.hidden = persona !== id;
+      });
+      document.querySelectorAll('#persona-tabs .nav-btn').forEach(function(button) { button.classList.remove('active'); });
+      var button = document.querySelector('[onclick="showPersona(\'' + id + '\')"]');
+      if (button) button.classList.add('active');
+    }
+
+    function buildHeuristics() {
+      var container = document.getElementById('heuristic-bars');
+      if (!container || container.children.length > 0) return;
+      var items = [
+        { name: 'H1 — Visibility of system status', score: 4 },
+        { name: 'H2 — Match: system & real world', score: 3 },
+        { name: 'H3 — User control & freedom', score: 5 },
+        { name: 'H4 — Consistency & standards', score: 5 },
+        { name: 'H5 — Error prevention', score: 4 },
+        { name: 'H6 — Recognition over recall', score: 2 },
+        { name: 'H7 — Flexibility & efficiency', score: 5 },
+        { name: 'H8 — Aesthetic & minimalist', score: 3 },
+        { name: 'H9 — Error recovery', score: 6 },
+        { name: 'H10 — Help & documentation', score: 5 }
+      ];
+      items.forEach(function(item) {
+        var color = item.score <= 3 ? 'var(--critical)' : item.score <= 5 ? 'var(--warning)' : 'var(--success)';
+        var row = document.createElement('div');
+        row.className = 'heuristic-bar';
+        row.innerHTML = '<div class="bar-header"><span class="bar-name">' + item.name + '</span><span class="bar-score" style="color:' + color + '">' + item.score + '/10</span></div><div class="bar-track"><div class="bar-fill" style="width:' + (item.score * 10) + '%;background:' + color + '"></div></div>';
+        container.appendChild(row);
+      });
+    }
+
+    buildHeuristics();
+  </script>
+</body>
+</html>
